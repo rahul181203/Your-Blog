@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, abort
+from flask import Flask, render_template, redirect, url_for, flash, abort, request
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import date
@@ -9,6 +9,8 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
+import smtplib
+from dotenv import load_dotenv, find_dotenv
 import os
 
 app = Flask(__name__)
@@ -24,6 +26,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
+
+load_dotenv(find_dotenv())
+
+my_email = os.environ.get("MY_EMAIL")
+password = os.environ.get("PASSWORD")
+mymail = os.environ.get("MYMAIL")
 
 
 # #CONFIGURE TABLES
@@ -154,9 +162,22 @@ def about():
     return render_template("about.html", current_user=current_user)
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
-    return render_template("contact.html", current_user=current_user)
+    if request.method == "POST":
+        name = request.form['name']
+        email = request.form['email']
+        phonenumber = request.form['number']
+        message = request.form['msg']
+        print(f"{name}\n{email}\n{phonenumber}\n{message}")
+        with smtplib.SMTP("smtp.gmail.com") as connection:
+            connection.starttls()
+            connection.login(user=my_email, password=password)
+            connection.sendmail(from_addr=my_email, to_addrs=mymail,
+                                msg=f"subject:New message\n\nname: {name}\nmail id: {email}\nphone number: {phonenumber}\nmessage: {message}.")
+        return render_template("contact.html", msg_sent=True)
+    else:
+        return render_template("contact.html", msg_sent=False, current_user=current_user)
 
 
 @app.route("/new-post", methods=["GET", "POST"])
