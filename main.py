@@ -10,7 +10,6 @@ from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
 import smtplib
-from dotenv import load_dotenv, find_dotenv
 import os
 
 app = Flask(__name__)
@@ -26,8 +25,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
-
-load_dotenv(find_dotenv())
 
 my_email = os.environ.get("MY_EMAIL")
 password = os.environ.get("PASSWORD")
